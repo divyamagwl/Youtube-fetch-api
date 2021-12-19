@@ -4,6 +4,10 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Video
 from .serializers import VideoSerializer, YoutubeAPIKeySerializer
 
+class VideosPagination(PageNumberPagination):
+    page_size = 20
+    max_page_size = 20
+
 class VideosListAPI(generics.ListAPIView):
     """
     API for getting list of all the videos, order by latest published time.
@@ -18,3 +22,4 @@ class VideosListAPI(generics.ListAPIView):
     ordering = ['-publishedAt'] # Sorting the videos in reverse chronological of publish date time
 
     serializer_class = VideoSerializer
+    pagination_class = VideosPagination
