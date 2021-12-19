@@ -23,3 +23,9 @@ class VideosListAPI(generics.ListAPIView):
 
     serializer_class = VideoSerializer
     pagination_class = VideosPagination
+
+class AddYoutubeKeyAPI(generics.CreateAPIView):
+    """
+    API for creating a new Youtube data API key.
+    """
+    serializer_class = YoutubeAPIKeySerializer
