@@ -25,10 +25,11 @@ def update_db(result):
 def client_conect(key):
     QUERY = "football"
     MAX_RESULTS = 50
+    publishedAfter = datetime.datetime(2021, 12, 1).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     try:
         youtube = build("youtube", "v3", developerKey=key.key)
-        search_exec = youtube.search().list(type='video', order='date', q=QUERY, part="id, snippet", maxResults=MAX_RESULTS).execute()
+        search_exec = youtube.search().list(type='video', order='date', q=QUERY, part="id, snippet", maxResults=MAX_RESULTS, publishedAfter=publishedAfter).execute()
         results = search_exec.get("items", [])
     except HttpError as e:
         print(f'An HTTP error {e.resp.status} occurred:\n {e.content}')
