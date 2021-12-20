@@ -7,9 +7,13 @@ from googleapiclient.errors import HttpError
 
 from .models import Video, YoutubeAPIKey
 
+
 def str_to_datetime(string):
     splitDateTime = string.split('T')
-    return datetime.datetime.strptime(splitDateTime[0] + ' ' + splitDateTime[1].split('Z')[0],'%Y-%m-%d %H:%M:%S')
+    return datetime.datetime.strptime(
+        splitDateTime[0] + ' ' + splitDateTime[1].split('Z')[0], '%Y-%m-%d %H:%M:%S'
+    )
+
 
 def update_db(result):
     title = result["snippet"]["title"]
@@ -18,7 +22,13 @@ def update_db(result):
     thumbnails = result['snippet']['thumbnails']['default']['url']
     publishedAt = str_to_datetime(result['snippet']['publishedAt'])
 
-    video_obj = Video(title=title, description=description, channelId=channelId, thumbnails=thumbnails, publishedAt=publishedAt)
+    video_obj = Video(
+        title=title,
+        description=description,
+        channelId=channelId,
+        thumbnails=thumbnails,
+        publishedAt=publishedAt,
+    )
     video_obj.save()
 
 
@@ -29,7 +39,18 @@ def client_conect(key):
 
     try:
         youtube = build("youtube", "v3", developerKey=key.key)
-        search_exec = youtube.search().list(type='video', order='date', q=QUERY, part="id, snippet", maxResults=MAX_RESULTS, publishedAfter=publishedAfter).execute()
+        search_exec = (
+            youtube.search()
+            .list(
+                type='video',
+                order='date',
+                q=QUERY,
+                part="id, snippet",
+                maxResults=MAX_RESULTS,
+                publishedAfter=publishedAfter,
+            )
+            .execute()
+        )
         results = search_exec.get("items", [])
     except HttpError as e:
         print(f'An HTTP error {e.resp.status} occurred:\n {e.content}')
@@ -38,6 +59,7 @@ def client_conect(key):
         return {}
 
     return results
+
 
 async def fetch_videos(key):
     while True:
@@ -50,16 +72,14 @@ async def fetch_videos(key):
             latest_video_db = Video.objects.all().order_by('-publishedAt').first()
             latest_video_publishedAt_db = latest_video_db.publishedAt
         except:
-            latest_video_publishedAt_db = datetime.datetime.min 
+            latest_video_publishedAt_db = datetime.datetime.min
 
-        
         for result in data:
             publishedAt = str_to_datetime(result['snippet']['publishedAt'])
-            if(publishedAt > latest_video_publishedAt_db):
+            if publishedAt > latest_video_publishedAt_db:
                 update_db(result)
 
-
-        await asyncio.sleep(300) # Sleep for 5 minutes
+        await asyncio.sleep(300)  # Sleep for 5 minutes
 
 
 # Schedule searching for new youtube videos
