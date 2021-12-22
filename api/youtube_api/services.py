@@ -16,18 +16,22 @@ def str_to_datetime(string):
 
 
 def update_db(result):
+    video_id = result["id"]["videoId"]
     title = result["snippet"]["title"]
     description = result['snippet']['description']
-    channelId = result['snippet']['channelId']
-    thumbnails = result['snippet']['thumbnails']['default']['url']
     publishedAt = str_to_datetime(result['snippet']['publishedAt'])
+    thumbnail = result['snippet']['thumbnails']['default']['url']
+    channel_title = result["snippet"]["channelTitle"]
+    channelId = result['snippet']['channelId']
 
     video_obj = Video(
+        videoId=video_id,
         title=title,
         description=description,
-        channelId=channelId,
-        thumbnails=thumbnails,
         publishedAt=publishedAt,
+        thumbnail=thumbnail,
+        channelId=channelId,
+        channelTitle=channel_title
     )
     video_obj.save()
 
@@ -68,19 +72,15 @@ async def fetch_videos(key):
         if data == {}:
             return
 
-        try:
-            latest_video_db = Video.objects.all().order_by('-publishedAt').first()
-            latest_video_publishedAt_db = latest_video_db.publishedAt
-        except:
-            latest_video_publishedAt_db = datetime.datetime.min
-
         for result in data:
-            publishedAt = str_to_datetime(result['snippet']['publishedAt'])
-            if publishedAt > latest_video_publishedAt_db:
+            # Only unique entries will be saved. Uniqueness is identified using video_id from youtube.com
+            try:
                 update_db(result)
+            except Exception as e:
+                print(e)
+                continue
 
-        await asyncio.sleep(300)  # Sleep for 5 minutes
-
+        await asyncio.sleep(300)
 
 # Schedule searching for new youtube videos
 def scheduled_searching():
