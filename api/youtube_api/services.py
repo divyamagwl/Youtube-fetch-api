@@ -77,7 +77,7 @@ async def fetch_videos(key):
             try:
                 update_db(result)
             except Exception as e:
-                print(e)
+                # print(e)
                 continue
 
         await asyncio.sleep(300)
